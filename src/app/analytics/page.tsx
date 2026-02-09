@@ -1,9 +1,15 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import analytics from '@/lib/analytics'
 
 export default function AnalyticsPage() {
   const [timeRange, setTimeRange] = useState('7d')
+  
+  // Track analytics page view
+  useEffect(() => {
+    analytics.analyticsViewed()
+  }, [])
 
   return (
     <div className="p-8">

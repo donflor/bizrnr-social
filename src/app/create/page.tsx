@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import analytics from '@/lib/analytics'
 
 const platforms = [
   { id: 'twitter', name: 'Twitter/X', icon: '𝕏', limit: 280 },
@@ -38,10 +39,13 @@ export default function CreatePost() {
 
   const generateWithAI = async () => {
     setIsGenerating(true)
+    const generatedContent = "🚀 Ready to automate your business? BizRnr's AI-powered platform handles lead generation, scheduling, and follow-ups while you focus on closing deals.\n\n✅ Voice AI that books appointments\n✅ Smart email sequences\n✅ 24/7 lead capture\n\nStart your free trial today! 👇"
     setTimeout(() => {
-      setContent("🚀 Ready to automate your business? BizRnr's AI-powered platform handles lead generation, scheduling, and follow-ups while you focus on closing deals.\n\n✅ Voice AI that books appointments\n✅ Smart email sequences\n✅ 24/7 lead capture\n\nStart your free trial today! 👇")
+      setContent(generatedContent)
       setHashtags(['BusinessAutomation', 'AI', 'SalesAutomation', 'SmallBusiness', 'Productivity'])
       setIsGenerating(false)
+      // Track AI content generation
+      analytics.aiContentGenerated(0, generatedContent.length)
     }, 1500)
   }
 
@@ -291,6 +295,14 @@ export default function CreatePost() {
           <div className="bg-white rounded-xl border border-gray-200 shadow-sm p-4 lg:p-6 space-y-3 lg:sticky lg:top-4">
             <button
               disabled={!content || selectedPlatforms.length === 0}
+              onClick={() => {
+                const postId = `post_${Date.now()}`
+                if (scheduledDate && scheduledTime) {
+                  analytics.postScheduled(postId, selectedPlatforms, `${scheduledDate}T${scheduledTime}`)
+                } else {
+                  analytics.postCreated(postId, selectedPlatforms, contentType)
+                }
+              }}
               className="w-full py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm lg:text-base"
             >
               {scheduledDate ? '📅 Schedule Post' : '📤 Post Now'}
