@@ -3,6 +3,7 @@ import { createClient } from '@supabase/supabase-js'
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
 
+// Legacy client (for backward compat - prefer server/browser clients)
 export const supabase = createClient(supabaseUrl, supabaseAnonKey)
 
 // Types for our social media tables
@@ -17,6 +18,7 @@ export interface Platform {
 
 export interface SocialAccount {
   id: string
+  user_id: string
   platform_id: string
   account_name: string
   account_handle: string
@@ -26,6 +28,7 @@ export interface SocialAccount {
 
 export interface SocialPost {
   id: string
+  user_id: string
   content: string
   media_urls: string[]
   scheduled_for: string | null
@@ -40,6 +43,7 @@ export interface SocialPost {
 
 export interface Campaign {
   id: string
+  user_id: string
   name: string
   description: string
   start_date: string
@@ -71,6 +75,7 @@ export interface DashboardStats {
 
 export interface ContentIdea {
   id: string
+  user_id: string
   title: string
   description: string
   content_draft: string

@@ -1,8 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import { usePathname } from 'next/navigation'
+import { usePathname, useRouter } from 'next/navigation'
+import { createSupabaseBrowser } from '@/lib/supabase-browser'
+import type { User } from '@supabase/supabase-js'
 
 const navigation = [
   { name: 'Dashboard', href: '/', icon: '📊' },
@@ -19,7 +21,24 @@ const navigation = [
 
 export default function Sidebar() {
   const pathname = usePathname()
+  const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
+  const [user, setUser] = useState<User | null>(null)
+  const supabase = createSupabaseBrowser()
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setUser(data.user))
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null)
+    })
+    return () => subscription.unsubscribe()
+  }, [supabase.auth])
+
+  async function handleLogout() {
+    await supabase.auth.signOut()
+    router.push('/login')
+    router.refresh()
+  }
 
   return (
     <>
@@ -27,7 +46,7 @@ export default function Sidebar() {
       <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-gray-900 text-white px-4 py-3 flex items-center justify-between">
         <h1 className="text-lg font-bold flex items-center gap-2">
           <span>📱</span>
-          BizRnr Social
+          BizRnR Social
         </h1>
         <button
           onClick={() => setIsOpen(!isOpen)}
@@ -53,16 +72,15 @@ export default function Sidebar() {
         ${isOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'}
         lg:transform-none
       `}>
-        {/* Logo - Hidden on mobile (shown in header) */}
+        {/* Logo */}
         <div className="hidden lg:block p-6 border-b border-gray-800">
           <h1 className="text-xl font-bold flex items-center gap-2">
             <span className="text-2xl">📱</span>
-            BizRnr Social
+            BizRnR Social
           </h1>
           <p className="text-gray-400 text-sm mt-1">Social Media Hub</p>
         </div>
 
-        {/* Mobile spacer for header */}
         <div className="lg:hidden h-14" />
 
         {/* Navigation */}
@@ -101,6 +119,27 @@ export default function Sidebar() {
             Generate with AI
           </Link>
         </div>
+
+        {/* User Info + Logout */}
+        {user && (
+          <div className="p-4 border-t border-gray-800">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center text-sm font-bold">
+                {user.email?.[0]?.toUpperCase() || '?'}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm text-white truncate">{user.email}</p>
+              </div>
+              <button
+                onClick={handleLogout}
+                className="text-gray-400 hover:text-white text-sm px-2 py-1 hover:bg-gray-800 rounded"
+                title="Sign out"
+              >
+                ↪
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Mobile Bottom Navigation */}
